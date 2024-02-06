@@ -19,7 +19,7 @@ function Board({ xIsNext, squares, onPlay }) {
       <Square
         key={index}
         value={squares[index]}
-        onSquareClick={() => handleClick(index)}
+        onSquareClick={() => handleClick(index, row, col)}
         isWinnerSquare={isWinnerSquare}
       />
     );
@@ -33,7 +33,11 @@ function Board({ xIsNext, squares, onPlay }) {
     return <div className="board-row" key={row}>{rowSquares}</div>;
   }
 
-  function handleClick(i) {
+  function handleClick(i, row, col) {
+    // Makes the visualization of the coordinates for the user, instead of the index of the squares array
+    row = row + 1;
+    col = col + 1;
+
     if (squares[i] || calculateWinner(squares)) {
       return;
     }
@@ -44,7 +48,7 @@ function Board({ xIsNext, squares, onPlay }) {
       nextSquares[i] = "O";
     }
 
-    onPlay(nextSquares);
+    onPlay(nextSquares, row, col);
   }
 
   const { winner, line: winnerLine } = calculateWinner(squares) || {};
@@ -72,30 +76,33 @@ function Board({ xIsNext, squares, onPlay }) {
 }
 
 export default function Game() {
-  const [history, setHistory] = useState([Array(9).fill(null)]);
+  const [history, setHistory] = useState([{ squares: Array(9).fill(null), coordinates: null }]);
   const [currentMove, setCurrentMove] = useState(0);
   const [sortAscending, setSortAscending] = useState(true);
   const xIsNext = currentMove % 2 === 0;
-  const currentSquares = history[currentMove];
+  const current = history[currentMove];
 
-  function handlePlay(nextSquares) {
-    const nextHistory = [...history.slice(0, currentMove + 1), nextSquares];
-    setHistory(nextHistory);
-    setCurrentMove(nextHistory.length - 1);
+  function handlePlay(nextSquares, row, col) {
+    const nextHistory = history.slice(0, currentMove + 1);
+    const newMove = { squares: nextSquares, coordinates: { row, col } };
+    setHistory([...nextHistory, newMove]);
+    setCurrentMove(nextHistory.length);
   }
 
   function jumpTo(nextMove) {
     setCurrentMove(nextMove);
   }
 
-  const moves = history.map((squares, move) => {
-    const step = sortAscending ? move : history.length - 1 - move;
+  const moves = history.map((move, moveNumber) => {
+    const step = sortAscending ? moveNumber : history.length - 1 - moveNumber;
     let description;
 
-    if (step > 0) {
-      description = 'Go to move #' + step;
-    } else {
+    if (step === 0) {
       description = 'Go to game start';
+    } else if (move.coordinates) {
+      description = `Go to move #${step} (${move.coordinates.row}, ${move.coordinates.col})`;
+    } else {
+      description = `Go to move #${step}`;
     }
 
     return (
@@ -116,7 +123,7 @@ export default function Game() {
   return (
     <div className="game">
       <div className="game-board">
-        <Board xIsNext={xIsNext} squares={currentSquares} onPlay={handlePlay} />
+        <Board xIsNext={xIsNext} squares={current.squares} onPlay={handlePlay} />
       </div>
       <div className="game-info">
         <button onClick={toggleSort}>
