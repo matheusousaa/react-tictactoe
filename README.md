@@ -1,4 +1,4 @@
-<h1>The ideia of this project is to follow the guide from React Documentation to create a Tic-Tac-Toe game in React.</h1>
+<h1>The ideia of this project is to follow the guide from React Documentation to create a Tic-Tac-Toe game</h1>
 
 <h3>This project consists in:</h3>
 <li>Lets you play tic-tac-toe;</li>
